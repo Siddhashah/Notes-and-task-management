@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Notes - NoteTask{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6 transition-colors">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h5 class="text-xl font-semibold mb-1">My Notes</h5>
+            <small class="text-gray-500 dark:text-gray-400">Organize your thoughts</small>
+        </div>
+        <div class="flex gap-4 items-center">
+            <div class="relative w-96">
+                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Search notes...">
+            </div>
+            <div class="flex gap-2">
+                <button class="p-2 border-2 border-gray-200 dark:border-gray-700 bg-primary text-white rounded-lg" id="gridView">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="p-2 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg" id="listView">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6 transition-colors">
+    <h6 class="font-semibold mb-3">Filter by Category</h6>
+    <div class="flex flex-wrap gap-2">
+        <button class="px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-primary text-white transition-all filter-btn" data-category="all">All Notes</button>
+        <button class="px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-primary hover:text-white hover:border-primary transition-all filter-btn" data-category="work">Work</button>
+        <button class="px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-primary hover:text-white hover:border-primary transition-all filter-btn" data-category="personal">Personal</button>
+        <button class="px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-primary hover:text-white hover:border-primary transition-all filter-btn" data-category="cooking">Cooking</button>
+        <button class="px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-primary hover:text-white hover:border-primary transition-all filter-btn" data-category="ideas">Ideas</button>
+    </div>
+</div>
+
+<!-- Notes Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="notesGrid">
+    {% for note in notes %}
+    <div class="note-card bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-l-4 {% if note.category == 'work' %}border-blue-500{% elif note.category == 'personal' %}border-green-500{% elif note.category == 'cooking' %}border-yellow-500{% else %}border-pink-500{% endif %} hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer" data-category="{{ note.category }}">
+        <div class="mb-3">
+            <span class="px-3 py-1 text-xs rounded-full {% if note.category == 'work' %}bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200{% elif note.category == 'personal' %}bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200{% elif note.category == 'cooking' %}bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200{% else %}bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-200{% endif %}">
+                {{ note.category|title }}
+            </span>
+        </div>
+        <h6 class="font-semibold text-lg mb-2">{{ note.title }}</h6>
+        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">{{ note.content }}</p>
+        <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-500">
+            <span>
+                <i class="far fa-clock mr-1"></i>{{ note.created_at.strftime('%b %d, %Y') }}
+            </span>
+            <div class="flex gap-2">
+                <button type="button" class="edit-note-btn hover:text-primary transition-colors" 
+                        data-id="{{ note.id }}"
+                        data-title="{{ note.title }}"
+                        data-content="{{ note.content }}"
+                        data-category="{{ note.category }}">
+                    <i class="far fa-edit"></i>
+                </button>
+                <form method="POST" action="{{ url_for('delete_note', note_id=note.id) }}" class="inline" onsubmit="return confirm('Are you sure?')">
+                    <button type="submit" class="hover:text-red-500 transition-colors">
+                        <i class="far fa-trash-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-span-full bg-white dark:bg-gray-800 rounded-xl p-10 text-center">
+        <i class="fas fa-sticky-note text-6xl text-gray-300 dark:text-gray-700 mb-4"></i>
+        <h5 class="text-xl font-semibold mb-2">No notes yet</h5>
+        <p class="text-gray-500 dark:text-gray-400 mb-4">Create your first note to get started!</p>
+        <button onclick="openCreateNoteModal()" class="px-6 py-3 bg-primary hover:bg-secondary text-white rounded-lg transition-all">
+            <i class="fas fa-plus mr-2"></i>Create Note
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block floating_button %}
+<button onclick="openCreateNoteModal()" class="fixed bottom-8 right-8 w-16 h-16 bg-primary hover:bg-secondary text-white rounded-full shadow-lg hover:scale-110 transition-all duration-300 flex items-center justify-center text-2xl z-50">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Note Modal (for both Create and Edit) -->
+<div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-2xl w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h5 class="text-xl font-semibold" id="modalTitle">Create New Note</h5>
+            <button onclick="closeNoteModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form method="POST" id="noteForm" action="{{ url_for('create_note') }}">
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Note Title</label>
+                <input type="text" id="noteTitle" name="title" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Enter note title" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Category</label>
+                <select id="noteCategory" name="category" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all">
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="cooking">Cooking</option>
+                    <option value="ideas">Ideas</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Content</label>
+                <textarea id="noteContent" name="content" rows="8" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Write your note here..." required></textarea>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeNoteModal()" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
+                <button type="submit" id="submitBtn" class="px-6 py-3 bg-primary hover:bg-secondary text-white rounded-lg transition-all">Save Note</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Open modal for creating a new note
+function openCreateNoteModal() {
+    document.getElementById('noteModal').classList.remove('hidden');
+    document.getElementById('modalTitle').textContent = 'Create New Note';
+    document.getElementById('noteForm').action = '{{ url_for("create_note") }}';
+    document.getElementById('noteTitle').value = '';
+    document.getElementById('noteContent').value = '';
+    document.getElementById('noteCategory').value = 'personal';
+    document.getElementById('submitBtn').textContent = 'Save Note';
+}
+
+// Open modal for editing an existing note
+function openEditNoteModal(id, title, content, category) {
+    document.getElementById('noteModal').classList.remove('hidden');
+    document.getElementById('modalTitle').textContent = 'Edit Note';
+    document.getElementById('noteForm').action = '/notes/update/' + id;
+    document.getElementById('noteTitle').value = title;
+    document.getElementById('noteContent').value = content;
+    document.getElementById('noteCategory').value = category.toLowerCase();
+    document.getElementById('submitBtn').textContent = 'Update Note';
+}
+
+// Close the note modal
+function closeNoteModal() {
+    document.getElementById('noteModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('noteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeNoteModal();
+    }
+});
+
+// Attach edit functionality to all edit buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-note-btn');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const title = this.dataset.title;
+            const content = this.dataset.content;
+            const category = this.dataset.category;
+            openEditNoteModal(id, title, content, category);
+        });
+    });
+});
+
+// Filter functionality
+const filterBtns = document.querySelectorAll('.filter-btn');
+const noteCards = document.querySelectorAll('.note-card');
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        filterBtns.forEach(b => {
+            b.classList.remove('bg-primary', 'text-white');
+            b.classList.add('bg-white', 'dark:bg-gray-800');
+        });
+        this.classList.add('bg-primary', 'text-white');
+        this.classList.remove('bg-white', 'dark:bg-gray-800');
+        
+        const category = this.dataset.category.toLowerCase();
+        noteCards.forEach(card => {
+            const cardCategory = card.dataset.category.toLowerCase();
+            if (category === 'all' || cardCategory === category) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    noteCards.forEach(card => {
+        const title = card.querySelector('h6').textContent.toLowerCase();
+        const content = card.querySelector('p').textContent.toLowerCase();
+        if (title.includes(searchTerm) || content.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - NoteTask{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6 transition-colors">
+    <div class="flex justify-between items-center">
+        <div>
+            <h5 class="text-xl font-semibold mb-1">Welcome back, {{ session.user_name }}!</h5>
+            <small class="text-gray-500 dark:text-gray-400">Here's what's happening today</small>
+        </div>
+        <div class="relative w-80">
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" class="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Search notes & tasks...">
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:-translate-y-1 transition-transform">
+        <div class="flex justify-between items-center">
+            <div>
+                <h6 class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Notes</h6>
+                <h3 class="text-3xl font-bold">{{ notes_count }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-xl flex items-center justify-center">
+                <i class="fas fa-sticky-note text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:-translate-y-1 transition-transform">
+        <div class="flex justify-between items-center">
+            <div>
+                <h6 class="text-gray-500 dark:text-gray-400 text-sm mb-2">Active Tasks</h6>
+                <h3 class="text-3xl font-bold">{{ active_tasks }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300 rounded-xl flex items-center justify-center">
+                <i class="fas fa-tasks text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:-translate-y-1 transition-transform">
+        <div class="flex justify-between items-center">
+            <div>
+                <h6 class="text-gray-500 dark:text-gray-400 text-sm mb-2">Completed</h6>
+                <h3 class="text-3xl font-bold">{{ completed_tasks }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 rounded-xl flex items-center justify-center">
+                <i class="fas fa-check-circle text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:-translate-y-1 transition-transform">
+        <div class="flex justify-between items-center">
+            <div>
+                <h6 class="text-gray-500 dark:text-gray-400 text-sm mb-2">Categories</h6>
+                <h3 class="text-3xl font-bold">5</h3>
+            </div>
+            <div class="w-12 h-12 bg-pink-100 dark:bg-pink-900 text-pink-600 dark:text-pink-300 rounded-xl flex items-center justify-center">
+                <i class="fas fa-tag text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Notes -->
+    <div>
+        <div class="flex justify-between items-center mb-4">
+            <h5 class="text-lg font-semibold">Recent Notes</h5>
+            <a href="{{ url_for('notes') }}" class="text-primary dark:text-secondary hover:underline text-sm">View All</a>
+        </div>
+        
+        {% for note in recent_notes %}
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 mb-4 shadow-sm border-l-4 border-primary hover:shadow-md transition-shadow">
+            <div class="flex justify-between items-start mb-2">
+                <h6 class="font-semibold">{{ note.title }}</h6>
+                <span class="px-3 py-1 bg-primary text-white text-xs rounded-full">{{ note.category|title }}</span>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-2 line-clamp-2">{{ note.content[:100] }}...</p>
+            <small class="text-gray-500 dark:text-gray-500">
+                <i class="far fa-clock mr-1"></i>{{ note.created_at.strftime('%b %d, %Y') }}
+            </small>
+        </div>
+        {% else %}
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 text-center text-gray-500">
+            <i class="fas fa-sticky-note text-4xl mb-3 opacity-50"></i>
+            <p>No notes yet. Create your first note!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Today's Tasks -->
+    <div>
+        <div class="flex justify-between items-center mb-4">
+            <h5 class="text-lg font-semibold">Today's Tasks</h5>
+            <a href="{{ url_for('tasks') }}" class="text-primary dark:text-secondary hover:underline text-sm">View All</a>
+        </div>
+
+        {% for task in today_tasks %}
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 mb-4 shadow-sm border-l-4 {% if task.priority == 'high' %}border-red-500{% elif task.priority == 'medium' %}border-yellow-500{% else %}border-green-500{% endif %} {% if task.status == 'completed' %}opacity-60{% endif %}">
+            <div class="flex items-start">
+                <form method="POST" action="{{ url_for('update_task', task_id=task.id) }}" class="mr-3 task-form">
+                    <input type="hidden" name="status" value="{% if task.status == 'completed' %}active{% else %}completed{% endif %}">
+                    <input type="checkbox" class="w-5 h-5 mt-1 text-primary rounded focus:ring-primary cursor-pointer task-checkbox" {% if task.status == 'completed' %}checked{% endif %}>
+                </form>
+                <div class="flex-1">
+                    <h6 class="font-semibold mb-1 {% if task.status == 'completed' %}line-through{% endif %}">{{ task.title }}</h6>
+                    <small class="text-gray-600 dark:text-gray-400">
+                        <i class="far fa-calendar mr-1"></i>
+                        {% if task.due_date %}{{ task.due_date.strftime('%b %d, %Y') }}{% else %}No due date{% endif %}
+                    </small>
+                    <div class="mt-2">
+                        <span class="px-2 py-1 text-xs rounded-full {% if task.priority == 'high' %}bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200{% elif task.priority == 'medium' %}bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200{% else %}bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200{% endif %}">
+                            {{ task.priority|title }} Priority
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 text-center text-gray-500">
+            <i class="fas fa-tasks text-4xl mb-3 opacity-50"></i>
+            <p>No tasks yet. Create your first task!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block floating_button %}
+<button id="addButton" class="fixed bottom-8 right-8 w-16 h-16 bg-primary hover:bg-secondary text-white rounded-full shadow-lg hover:scale-110 transition-all duration-300 flex items-center justify-center text-2xl z-50">
+    <i class="fas fa-plus"></i>
+</button>
+
+<script>
+// Handle task checkbox changes
+document.addEventListener('DOMContentLoaded', function() {
+    const taskCheckboxes = document.querySelectorAll('.task-checkbox');
+    taskCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            this.closest('.task-form').submit();
+        });
+    });
+    
+    // Handle add button click
+    const addButton = document.getElementById('addButton');
+    addButton.addEventListener('click', function() {
+        window.location.href = '{{ url_for("notes") }}';
+    });
+});
+</script>
+{% endblock %}

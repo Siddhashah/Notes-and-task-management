@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar - NoteTask{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6 transition-colors">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h5 class="text-xl font-semibold mb-1">Calendar</h5>
+            <small class="text-gray-500 dark:text-gray-400">Manage your schedule</small>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+        <!-- Month View -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm transition-colors" id="monthView">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200 dark:border-gray-700">
+                <h4 class="text-2xl font-bold" id="currentMonth">January 2026</h4>
+                <div class="flex gap-2">
+                    <button id="prevMonth" class="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg transition-all">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="today" class="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg transition-all">Today</button>
+                    <button id="nextMonth" class="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg transition-all">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden" id="calendar">
+                <div class="bg-gray-100 dark:bg-gray-900 p-3 text-center font-semibold text-sm">Sun</div>
+                <div class="bg-gray-100 dark:bg-gray-900 p-3 text-center font-semibold text-sm">Mon</div>
+                <div class="bg-gray-100 dark:bg-gray-900 p-3 text-center font-semibold text-sm">Tue</div>
+                <div class="bg-gray-100 dark:bg-gray-900 p-3 text-center font-semibold text-sm">Wed</div>
+                <div class="bg-gray-100 dark:bg-gray-900 p-3 text-center font-semibold text-sm">Thu</div>
+                <div class="bg-gray-100 dark:bg-gray-900 p-3 text-center font-semibold text-sm">Fri</div>
+                <div class="bg-gray-100 dark:bg-gray-900 p-3 text-center font-semibold text-sm">Sat</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events & Tasks Sidebar -->
+    <div class="lg:col-span-1">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm transition-colors mb-4">
+            <h5 class="text-lg font-semibold mb-4">Upcoming Events</h5>
+
+            {% for event in events[:3] %}
+            <div class="mb-4 p-4 border-l-4 {% if event.category == 'work' %}border-blue-500 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20{% elif event.category == 'personal' %}border-green-500 bg-green-50 dark:bg-green-900 dark:bg-opacity-20{% else %}border-yellow-500 bg-yellow-50 dark:bg-yellow-900 dark:bg-opacity-20{% endif %} rounded-lg">
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <i class="far fa-clock mr-1"></i>{{ event.start_date.strftime('%b %d, %I:%M %p') }}
+                </div>
+                <h6 class="font-semibold mb-1">{{ event.title }}</h6>
+                {% if event.description %}
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ event.description }}</p>
+                {% endif %}
+                <span class="px-2 py-1 text-xs rounded-full {% if event.category == 'work' %}bg-blue-500 text-white{% elif event.category == 'personal' %}bg-green-500 text-white{% else %}bg-yellow-500 text-white{% endif %}">
+                    {{ event.category|title }}
+                </span>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-calendar text-4xl text-gray-300 dark:text-gray-700 mb-3"></i>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">No upcoming events</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm transition-colors">
+            <h5 class="text-lg font-semibold mb-4">Upcoming Tasks</h5>
+
+            {% for task in tasks[:3] %}
+            <div class="mb-4 p-4 border-l-4 {% if task.priority == 'high' %}border-red-500 bg-red-50 dark:bg-red-900 dark:bg-opacity-20{% elif task.priority == 'medium' %}border-yellow-500 bg-yellow-50 dark:bg-yellow-900 dark:bg-opacity-20{% else %}border-green-500 bg-green-50 dark:bg-green-900 dark:bg-opacity-20{% endif %} rounded-lg">
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <i class="far fa-clock mr-1"></i>{{ task.due_date.strftime('%b %d, %I:%M %p') }}
+                </div>
+                <h6 class="font-semibold mb-1">{{ task.title }}</h6>
+                <div class="flex gap-2 mt-2">
+                    <span class="px-2 py-1 text-xs rounded-full {% if task.priority == 'high' %}bg-red-500 text-white{% elif task.priority == 'medium' %}bg-yellow-500 text-white{% else %}bg-green-500 text-white{% endif %}">
+                        {{ task.priority|title }}
+                    </span>
+                    <span class="px-2 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        {{ task.category|title }}
+                    </span>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-tasks text-4xl text-gray-300 dark:text-gray-700 mb-3"></i>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">No upcoming tasks</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block floating_button %}
+<button onclick="document.getElementById('eventModal').classList.remove('hidden')" class="fixed bottom-8 right-8 w-16 h-16 bg-primary hover:bg-secondary text-white rounded-full shadow-lg hover:scale-110 transition-all duration-300 flex items-center justify-center text-2xl z-50">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Event Modal -->
+<div id="eventModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-2xl w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h5 class="text-xl font-semibold">Add New Event</h5>
+            <button onclick="document.getElementById('eventModal').classList.add('hidden')" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('create_event') }}">
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Event Title</label>
+                <input type="text" name="title" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Enter event title" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Description</label>
+                <textarea name="description" rows="3" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Add event description..."></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Start Date & Time</label>
+                    <input type="datetime-local" name="start_date" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">End Date & Time</label>
+                    <input type="datetime-local" name="end_date" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" required>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Category</label>
+                <select name="category" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all">
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="meeting">Meeting</option>
+                </select>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="document.getElementById('eventModal').classList.add('hidden')" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
+                <button type="submit" class="px-6 py-3 bg-primary hover:bg-secondary text-white rounded-lg transition-all">Add Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Calendar Logic
+let currentDate = new Date();
+const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+
+// Load events and tasks from database
+const dbEvents = JSON.parse('{{ events | tojson | safe }}');
+const dbTasks = JSON.parse('{{ tasks | tojson | safe }}');
+
+// Convert database events to calendar format
+const calendarEvents = {};
+
+// Add events to calendar
+dbEvents.forEach(event => {
+    const startDate = new Date(event.start_date);
+    const dateKey = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+    
+    if (!calendarEvents[dateKey]) {
+        calendarEvents[dateKey] = [];
+    }
+    
+    calendarEvents[dateKey].push({
+        type: event.category,
+        title: event.title,
+        time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    });
+});
+
+// Add tasks to calendar
+dbTasks.forEach(task => {
+    const dueDate = new Date(task.due_date);
+    const dateKey = `${dueDate.getFullYear()}-${dueDate.getMonth() + 1}-${dueDate.getDate()}`;
+    
+    if (!calendarEvents[dateKey]) {
+        calendarEvents[dateKey] = [];
+    }
+    
+    calendarEvents[dateKey].push({
+        type: 'task-' + task.priority,
+        title: task.title,
+        time: dueDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    });
+});
+
+function renderCalendar(date) {
+    const calendar = document.getElementById('calendar');
+    const monthDisplay = document.getElementById('currentMonth');
+    
+    // Keep day headers (first 7 children)
+    while (calendar.children.length > 7) {
+        calendar.removeChild(calendar.lastChild);
+    }
+    
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    monthDisplay.textContent = `${monthNames[month]} ${year}`;
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    
+    const today = new Date();
+    
+    // Previous month days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        const dayDiv = createDayElement(day, true, false, year, month - 1);
+        calendar.appendChild(dayDiv);
+    }
+    
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        const dayDiv = createDayElement(day, false, isToday, year, month);
+        
+        // Add events
+        const dateKey = `${year}-${month + 1}-${day}`;
+        if (calendarEvents[dateKey] && calendarEvents[dateKey].length > 0) {
+            const eventContainer = document.createElement('div');
+            eventContainer.className = 'mt-1 space-y-1';
+            
+            // Show up to 3 events
+            const visibleEvents = calendarEvents[dateKey].slice(0, 3);
+            visibleEvents.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = `text-xs px-2 py-1 rounded truncate ${getEventColor(event.type)}`;
+                eventItem.textContent = event.title;
+                eventItem.title = `${event.title} - ${event.time}`;
+                eventContainer.appendChild(eventItem);
+            });
+            
+            // Show "more" indicator if there are additional events
+            if (calendarEvents[dateKey].length > 3) {
+                const moreIndicator = document.createElement('div');
+                moreIndicator.className = 'text-xs text-gray-500 dark:text-gray-400 px-2';
+                moreIndicator.textContent = `+${calendarEvents[dateKey].length - 3} more`;
+                eventContainer.appendChild(moreIndicator);
+            }
+            
+            dayDiv.appendChild(eventContainer);
+        }
+        
+        calendar.appendChild(dayDiv);
+    }
+    
+    // Next month days
+    const remainingDays = 42 - (firstDay + daysInMonth);
+    for (let day = 1; day <= remainingDays; day++) {
+        const dayDiv = createDayElement(day, true, false, year, month + 1);
+        calendar.appendChild(dayDiv);
+    }
+}
+
+function getEventColor(type) {
+    const colors = {
+        'work': 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200',
+        'personal': 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200',
+        'meeting': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200',
+        'task-high': 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200',
+        'task-medium': 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200',
+        'task-low': 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
+    };
+    return colors[type] || 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-200';
+}
+
+function createDayElement(day, isOtherMonth, isToday, year, month) {
+    const dayDiv = document.createElement('div');
+    dayDiv.className = `bg-white dark:bg-gray-800 min-h-[100px] p-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${isOtherMonth ? 'opacity-40' : ''} ${isToday ? 'bg-blue-50 dark:bg-blue-900 dark:bg-opacity-30' : ''}`;
+    
+    const dayNumber = document.createElement('div');
+    dayNumber.className = `font-semibold mb-1 text-sm ${isToday ? 'w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center' : ''}`;
+    dayNumber.textContent = day;
+    dayDiv.appendChild(dayNumber);
+    
+    return dayDiv;
+}
+
+document.getElementById('prevMonth').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar(currentDate);
+});
+
+document.getElementById('nextMonth').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar(currentDate);
+});
+
+document.getElementById('today').addEventListener('click', () => {
+    currentDate = new Date();
+    renderCalendar(currentDate);
+});
+
+// Initial render
+renderCalendar(currentDate);
+
+// View Toggle
+const monthViewBtn = document.getElementById('monthViewBtn');
+const weekViewBtn = document.getElementById('weekViewBtn');
+const dayViewBtn = document.getElementById('dayViewBtn');
+
+const monthView = document.getElementById('monthView');
+const weekView = document.getElementById('weekView');
+const dayView = document.getElementById('dayView');
+
+const viewButtons = [monthViewBtn, weekViewBtn, dayViewBtn];
+const views = [monthView, weekView, dayView];
+
+function switchView(index) {
+    viewButtons.forEach(btn => {
+        btn.classList.remove('bg-primary', 'text-white', 'border-primary');
+        btn.classList.add('border-gray-200', 'dark:border-gray-700', 'bg-white', 'dark:bg-gray-800');
+    });
+    viewButtons[index].classList.add('bg-primary', 'text-white', 'border-primary');
+    viewButtons[index].classList.remove('border-gray-200', 'dark:border-gray-700', 'bg-white', 'dark:bg-gray-800');
+    
+    views.forEach(view => view.classList.add('hidden'));
+    views[index].classList.remove('hidden');
+}
+
+monthViewBtn.addEventListener('click', () => switchView(0));
+weekViewBtn.addEventListener('click', () => switchView(1));
+dayViewBtn.addEventListener('click', () => switchView(2));
+</script>
+{% endblock %}

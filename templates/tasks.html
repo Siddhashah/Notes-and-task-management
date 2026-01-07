@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks - NoteTask{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6 transition-colors">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h5 class="text-xl font-semibold mb-1">My Tasks</h5>
+            <small class="text-gray-500 dark:text-gray-400">Stay organized and productive</small>
+        </div>
+        <div class="relative w-96">
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Search tasks...">
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm text-center transition-colors">
+        <i class="fas fa-tasks text-3xl text-blue-500 mb-3"></i>
+        <div class="text-3xl font-bold text-blue-500 mb-1">{{ tasks|selectattr('status', 'equalto', 'active')|list|length }}</div>
+        <div class="text-gray-500 dark:text-gray-400 text-sm">Active Tasks</div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm text-center transition-colors">
+        <i class="fas fa-check-circle text-3xl text-green-500 mb-3"></i>
+        <div class="text-3xl font-bold text-green-500 mb-1">{{ tasks|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+        <div class="text-gray-500 dark:text-gray-400 text-sm">Completed</div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm text-center transition-colors">
+        <i class="fas fa-exclamation-circle text-3xl text-red-500 mb-3"></i>
+        <div class="text-3xl font-bold text-red-500 mb-1">{{ tasks|selectattr('priority', 'equalto', 'high')|selectattr('status', 'equalto', 'active')|list|length }}</div>
+        <div class="text-gray-500 dark:text-gray-400 text-sm">High Priority</div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm text-center transition-colors">
+        <i class="fas fa-chart-line text-3xl text-purple-500 mb-3"></i>
+        <div class="text-3xl font-bold text-purple-500 mb-1" id="completionRate">
+            {% set total = tasks|length %}
+            {% set completed = tasks|selectattr('status', 'equalto', 'completed')|list|length %}
+            {% if total > 0 %}{{ ((completed / total) * 100)|int }}%{% else %}0%{% endif %}
+        </div>
+        <div class="text-gray-500 dark:text-gray-400 text-sm">Completion Rate</div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3 overflow-hidden">
+            <div class="bg-purple-500 h-2 rounded-full transition-all" id="progressBar" data-total="{{ tasks|length }}" data-completed="{{ tasks|selectattr('status', 'equalto', 'completed')|list|length }}"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="flex flex-wrap gap-2 mb-6">
+    <button class="px-5 py-2 rounded-full border-2 bg-primary text-white border-primary transition-all filter-tab" data-filter="all">All Tasks</button>
+    <button class="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-primary hover:text-white hover:border-primary transition-all filter-tab" data-filter="active">Active</button>
+    <button class="px-5 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-primary hover:text-white hover:border-primary transition-all filter-tab" data-filter="completed">Completed</button>
+</div>
+
+<!-- All Tasks -->
+<div class="space-y-4">
+    {% for task in tasks %}
+    <div class="task-card bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-l-4 {% if task.priority == 'high' %}border-red-500{% elif task.priority == 'medium' %}border-yellow-500{% else %}border-green-500{% endif %} {% if task.status == 'completed' %}opacity-60{% endif %} hover:shadow-md transition-all" data-status="{{ task.status }}">
+        <div class="flex items-start gap-4">
+            <form method="POST" action="{{ url_for('update_task', task_id=task.id) }}" class="flex-shrink-0">
+                <input type="hidden" name="status" value="{% if task.status == 'completed' %}active{% else %}completed{% endif %}">
+                <input type="checkbox" class="w-5 h-5 mt-1 text-primary rounded focus:ring-primary cursor-pointer" {% if task.status == 'completed' %}checked{% endif %} onchange="this.form.submit()">
+            </form>
+            <div class="flex-1">
+                <h6 class="font-semibold text-lg mb-2 {% if task.status == 'completed' %}line-through text-gray-500{% endif %}">{{ task.title }}</h6>
+                {% if task.description %}
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">{{ task.description }}</p>
+                {% endif %}
+                <div class="flex flex-wrap gap-3 text-sm">
+                    {% if task.due_date %}
+                    <span class="text-gray-500 dark:text-gray-400">
+                        <i class="far fa-calendar mr-1"></i>{{ task.due_date.strftime('%b %d, %Y %I:%M %p') }}
+                    </span>
+                    {% endif %}
+                    <span class="px-3 py-1 rounded-full text-xs {% if task.priority == 'high' %}bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200{% elif task.priority == 'medium' %}bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200{% else %}bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200{% endif %}">
+                        {{ task.priority|title }} Priority
+                    </span>
+                    <span class="text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-briefcase mr-1"></i>{{ task.category|title }}
+                    </span>
+                </div>
+            </div>
+            <div class="flex gap-2 flex-shrink-0 align-items-end">
+                <button type="button"
+                    class="px-3 py-2 text-primary hover:bg-primary hover:bg-opacity-10 rounded-lg transition-all edit-task-btn"
+                    data-id="{{ task.id }}"
+                    data-title="{{ task.title }}"
+                    data-description="{{ task.description or '' }}"
+                    data-priority="{{ task.priority }}"
+                    data-category="{{ task.category }}"
+                    data-due-date="{% if task.due_date %}{{ task.due_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                    <i class="far fa-edit"></i>
+                </button>
+                <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this task?')">
+                    <button type="submit" class="px-3 py-2 text-red-500 hover:bg-red-500 hover:bg-opacity-10 rounded-lg transition-all">
+                        <i class="far fa-trash-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-10 text-center">
+        <i class="fas fa-tasks text-6xl text-gray-300 dark:text-gray-700 mb-4"></i>
+        <h5 class="text-xl font-semibold mb-2">No tasks yet</h5>
+        <p class="text-gray-500 dark:text-gray-400 mb-4">Create your first task to get started!</p>
+        <button onclick="openCreateTaskModal()" class="px-6 py-3 bg-primary hover:bg-secondary text-white rounded-lg transition-all">
+            <i class="fas fa-plus mr-2"></i>Create Task
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block floating_button %}
+<button onclick="openCreateTaskModal()" class="fixed bottom-8 right-8 w-16 h-16 bg-primary hover:bg-secondary text-white rounded-full shadow-lg hover:scale-110 transition-all duration-300 flex items-center justify-center text-2xl z-50">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Task Modal (for both Create and Edit) -->
+<div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-2xl w-full mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h5 class="text-xl font-semibold" id="taskModalTitle">Create New Task</h5>
+            <button onclick="closeTaskModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form method="POST" id="taskForm" action="{{ url_for('create_task') }}">
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Task Title</label>
+                <input type="text" id="taskTitle" name="title" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Enter task title" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Description</label>
+                <textarea id="taskDescription" name="description" rows="3" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Add task description..."></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Priority</label>
+                    <select id="taskPriority" name="priority" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Category</label>
+                    <select id="taskCategory" name="category" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all">
+                        <option value="work">Work</option>
+                        <option value="personal">Personal</option>
+                        <option value="shopping">Shopping</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Due Date & Time</label>
+                <input type="datetime-local" id="taskDueDate" name="due_date" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all">
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeTaskModal()" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-all">Cancel</button>
+                <button type="submit" id="taskSubmitBtn" class="px-6 py-3 bg-primary hover:bg-secondary text-white rounded-lg transition-all">Create Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set progress bar width on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBar = document.getElementById('progressBar');
+    const total = parseInt(progressBar.dataset.total);
+    const completed = parseInt(progressBar.dataset.completed);
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    progressBar.style.width = percentage + '%';
+    
+    // Attach edit functionality to all edit buttons
+    const editButtons = document.querySelectorAll('.edit-task-btn');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const title = this.dataset.title;
+            const description = this.dataset.description;
+            const priority = this.dataset.priority;
+            const category = this.dataset.category;
+            const dueDate = this.dataset.dueDate;
+            openEditTaskModal(id, title, description, priority, category, dueDate);
+        });
+    });
+});
+
+// Open modal for creating a new task
+function openCreateTaskModal() {
+    document.getElementById('taskModal').classList.remove('hidden');
+    document.getElementById('taskModalTitle').textContent = 'Create New Task';
+    document.getElementById('taskForm').action = '{{ url_for("create_task") }}';
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDescription').value = '';
+    document.getElementById('taskPriority').value = 'medium';
+    document.getElementById('taskCategory').value = 'personal';
+    document.getElementById('taskDueDate').value = '';
+    document.getElementById('taskSubmitBtn').textContent = 'Create Task';
+}
+
+// Open modal for editing an existing task
+function openEditTaskModal(id, title, description, priority, category, dueDate) {
+    document.getElementById('taskModal').classList.remove('hidden');
+    document.getElementById('taskModalTitle').textContent = 'Edit Task';
+    document.getElementById('taskForm').action = '/tasks/update-full/' + id;
+    document.getElementById('taskTitle').value = title;
+    document.getElementById('taskDescription').value = description;
+    document.getElementById('taskPriority').value = priority;
+    document.getElementById('taskCategory').value = category;
+    document.getElementById('taskDueDate').value = dueDate;
+    document.getElementById('taskSubmitBtn').textContent = 'Update Task';
+}
+
+// Close the task modal
+function closeTaskModal() {
+    document.getElementById('taskModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('taskModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeTaskModal();
+    }
+});
+
+// Filter tabs
+const filterTabs = document.querySelectorAll('.filter-tab');
+const taskCards = document.querySelectorAll('.task-card');
+
+filterTabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+        filterTabs.forEach(t => {
+            t.classList.remove('bg-primary', 'text-white', 'border-primary');
+            t.classList.add('border-gray-200', 'dark:border-gray-700', 'bg-white', 'dark:bg-gray-800');
+        });
+        this.classList.add('bg-primary', 'text-white', 'border-primary');
+        this.classList.remove('border-gray-200', 'dark:border-gray-700', 'bg-white', 'dark:bg-gray-800');
+        
+        const filter = this.dataset.filter;
+        taskCards.forEach(card => {
+            const status = card.dataset.status;
+            if (filter === 'all' || status === filter) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    taskCards.forEach(card => {
+        const title = card.querySelector('h6').textContent.toLowerCase();
+        const description = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
+        if (title.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - NoteTask</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 to-purple-800 dark:from-gray-900 dark:to-gray-800 transition-colors py-10">
+    <div class="w-full max-w-lg p-5">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-10 shadow-2xl relative transition-colors">
+            <button class="absolute top-5 right-5 w-10 h-10 rounded-full bg-primary bg-opacity-10 dark:bg-secondary dark:bg-opacity-10 flex items-center justify-center text-primary dark:text-secondary hover:rotate-180 transition-all duration-300" id="themeToggle">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            
+            <div class="text-center mb-8">
+                <div class="w-18 h-18 bg-gradient-to-br from-primary to-secondary rounded-2xl inline-flex items-center justify-center text-white text-3xl mb-4">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <h4 class="text-2xl font-semibold text-primary dark:text-secondary mb-2">Create Your Account</h4>
+                <p class="text-gray-600 dark:text-gray-400">Start organizing your notes and tasks today</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 text-gray-600 dark:text-gray-400 bg-transparent border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-xl">
+                                <i class="fas fa-user text-sm"></i>
+                            </span>
+                            <input type="text" name="first_name" id="first_name" class="flex-1 px-1 py-2.5 text-sm border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-xl focus:border-primary dark:focus:border-secondary focus:ring-2 focus:ring-primary focus:ring-opacity-10 dark:bg-gray-900 dark:text-white transition-all" placeholder="John" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 text-gray-600 dark:text-gray-400 bg-transparent border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-xl">
+                                <i class="fas fa-user text-sm"></i>
+                            </span>
+                            <input type="text" name="last_name" id="last_name" class="flex-1 px-1 py-2.5 text-sm border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-xl focus:border-primary dark:focus:border-secondary focus:ring-2 focus:ring-primary focus:ring-opacity-10 dark:bg-gray-900 dark:text-white transition-all" placeholder="Doe" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-4 text-gray-600 dark:text-gray-400 bg-transparent border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-xl">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" name="email" id="email" class="flex-1 px-4 py-3 border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-xl focus:border-primary dark:focus:border-secondary focus:ring-2 focus:ring-primary focus:ring-opacity-10 dark:bg-gray-900 dark:text-white transition-all" placeholder="your@email.com" required>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-4 text-gray-600 dark:text-gray-400 bg-transparent border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-xl">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" name="password" id="password" class="flex-1 px-4 py-3 border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-xl focus:border-primary dark:focus:border-secondary focus:ring-2 focus:ring-primary focus:ring-opacity-10 dark:bg-gray-900 dark:text-white transition-all" placeholder="Create a strong password" required>
+                    </div>
+                    <div class="h-1 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden">
+                        <div class="h-full transition-all duration-300 rounded-full" id="strengthBar"></div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div class="flex items-center gap-1" id="req-length">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span>At least 8 characters</span>
+                        </div>
+                        <div class="flex items-center gap-1" id="req-upper">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span>One uppercase letter</span>
+                        </div>
+                        <div class="flex items-center gap-1" id="req-number">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span>One number</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-4 text-gray-600 dark:text-gray-400 bg-transparent border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-xl">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" id="confirm_password" class="flex-1 px-4 py-3 border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-xl focus:border-primary dark:focus:border-secondary focus:ring-2 focus:ring-primary focus:ring-opacity-10 dark:bg-gray-900 dark:text-white transition-all" placeholder="Confirm your password" required>
+                    </div>
+                </div>
+                
+                <div class="flex items-start mb-4">
+                    <input type="checkbox" id="terms" class="w-4 h-4 mt-1 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:bg-gray-700 dark:border-gray-600" required>
+                    <label for="terms" class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                        I agree to the <a href="#" class="font-medium text-primary dark:text-secondary hover:underline">Terms of Service</a> and <a href="#" class="font-medium text-primary dark:text-secondary hover:underline">Privacy Policy</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="w-full py-3 px-4 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300 mt-2">
+                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                </button>
+            </form>
+            
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200 dark:border-gray-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400">OR</span>
+                </div>
+            </div>
+            
+            <div class="text-center text-gray-600 dark:text-gray-400">
+                Already have an account? <a href="{{ url_for('login') }}" class="font-medium text-primary dark:text-secondary hover:underline">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+        
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            html.classList.add('dark');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+        
+        themeToggle.addEventListener('click', function() {
+            html.classList.toggle('dark');
+            
+            if (html.classList.contains('dark')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Password Strength Checker
+        const passwordInput = document.getElementById('password');
+        const strengthBar = document.getElementById('strengthBar');
+        const reqLength = document.getElementById('req-length');
+        const reqUpper = document.getElementById('req-upper');
+        const reqNumber = document.getElementById('req-number');
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            
+            if (password.length >= 8) {
+                reqLength.classList.add('text-green-500');
+                strength++;
+            } else {
+                reqLength.classList.remove('text-green-500');
+            }
+            
+            if (/[A-Z]/.test(password)) {
+                reqUpper.classList.add('text-green-500');
+                strength++;
+            } else {
+                reqUpper.classList.remove('text-green-500');
+            }
+            
+            if (/[0-9]/.test(password)) {
+                reqNumber.classList.add('text-green-500');
+                strength++;
+            } else {
+                reqNumber.classList.remove('text-green-500');
+            }
+            
+            strengthBar.style.width = (strength * 33.33) + '%';
+            if (strength === 1) {
+                strengthBar.className = 'h-full transition-all duration-300 rounded-full bg-red-500';
+            } else if (strength === 2) {
+                strengthBar.className = 'h-full transition-all duration-300 rounded-full bg-yellow-500';
+            } else if (strength === 3) {
+                strengthBar.className = 'h-full transition-all duration-300 rounded-full bg-green-500';
+            }
+        });
+        
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+            }
+        });
+    </script>
+</body>
+</html>
