@@ -62,12 +62,12 @@
 <div class="space-y-4">
     {% for task in tasks %}
     <div class="task-card bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border-l-4 {% if task.priority == 'high' %}border-red-500{% elif task.priority == 'medium' %}border-yellow-500{% else %}border-green-500{% endif %} {% if task.status == 'completed' %}opacity-60{% endif %} hover:shadow-md transition-all" data-status="{{ task.status }}">
-        <div class="flex items-start gap-4">
-            <form method="POST" action="{{ url_for('update_task', task_id=task.id) }}" class="flex-shrink-0">
+        <div style="display:flex; align-items:flex-start; gap:1rem; width:100%;">
+            <form method="POST" action="{{ url_for('update_task', task_id=task.id) }}" style="flex-shrink:0;">
                 <input type="hidden" name="status" value="{% if task.status == 'completed' %}active{% else %}completed{% endif %}">
                 <input type="checkbox" class="w-5 h-5 mt-1 text-primary rounded focus:ring-primary cursor-pointer" {% if task.status == 'completed' %}checked{% endif %} onchange="this.form.submit()">
             </form>
-            <div class="flex-1">
+            <div style="flex:1; min-width:0;">
                 <h6 class="font-semibold text-lg mb-2 {% if task.status == 'completed' %}line-through text-gray-500{% endif %}">{{ task.title }}</h6>
                 {% if task.description %}
                 <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">{{ task.description }}</p>
@@ -86,7 +86,7 @@
                     </span>
                 </div>
             </div>
-            <div class="flex gap-2 flex-shrink-0 align-items-end">
+            <div style="display:flex; gap:0.5rem; flex-shrink:0; margin-left:auto; align-items:center;">
                 <button type="button"
                     class="px-3 py-2 text-primary hover:bg-primary hover:bg-opacity-10 rounded-lg transition-all edit-task-btn"
                     data-id="{{ task.id }}"
@@ -252,7 +252,7 @@ filterTabs.forEach(tab => {
         taskCards.forEach(card => {
             const status = card.dataset.status;
             if (filter === 'all' || status === filter) {
-                card.style.display = 'flex';
+                card.style.display = 'block';
             } else {
                 card.style.display = 'none';
             }
@@ -267,7 +267,7 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
         const title = card.querySelector('h6').textContent.toLowerCase();
         const description = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
         if (title.includes(searchTerm) || description.includes(searchTerm)) {
-            card.style.display = 'flex';
+            card.style.display = 'block';
         } else {
             card.style.display = 'none';
         }
